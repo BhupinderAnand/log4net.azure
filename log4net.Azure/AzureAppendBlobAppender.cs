@@ -75,6 +75,24 @@ namespace log4net.Appender
             }
         }
 
+        private string _filenameTimeFormat;
+
+        public string FileNameTimeFormat
+        {
+            get
+            {
+                if (String.IsNullOrEmpty(_filenameTimeFormat))
+                    _filenameTimeFormat = "yyyy_MM_dd";
+                return _filenameTimeFormat;
+            }
+            set
+            {
+                _filenameTimeFormat = value;
+            }
+        }
+
+
+
         /// <summary>
         /// Sends the events.
         /// </summary>
@@ -86,7 +104,7 @@ namespace log4net.Appender
         /// </remarks>
         protected override void SendBuffer(LoggingEvent[] events)
         {
-            CloudAppendBlob appendBlob = _cloudBlobContainer.GetAppendBlobReference(Filename(_directoryName));
+            CloudAppendBlob appendBlob = _cloudBlobContainer.GetAppendBlobReference(Filename(_directoryName, _filenameTimeFormat));
             if (!appendBlob.Exists()) appendBlob.CreateOrReplace();
             else _lineFeed = Environment.NewLine;
 
@@ -98,7 +116,7 @@ namespace log4net.Appender
 
         private void ProcessEvent(LoggingEvent loggingEvent)
         {
-            CloudAppendBlob appendBlob = _cloudBlobContainer.GetAppendBlobReference(Filename(_directoryName));
+            CloudAppendBlob appendBlob = _cloudBlobContainer.GetAppendBlobReference(Filename(_directoryName, _filenameTimeFormat));
 
             PatternLayout layout = (PatternLayout)base.Layout;
             string log = layout.Format(loggingEvent);
@@ -109,11 +127,11 @@ namespace log4net.Appender
             }
         }
 
-        private static string Filename(string directoryName)
+        private static string Filename(string directoryName, string filenameTimeFormat)
         {
             return string.Format("{0}/{1}.entry.log",
                                  directoryName,
-                                 DateTime.Today.ToString("yyyy_MM_dd",
+                                 DateTime.Today.ToString(filenameTimeFormat,
                                                                  DateTimeFormatInfo.InvariantInfo));
         }
 
