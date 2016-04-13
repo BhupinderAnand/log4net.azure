@@ -75,19 +75,19 @@ namespace log4net.Appender
             }
         }
 
-        private string _filenameTimeFormat;
+        private string _filenameDateTimeFormat;
 
-        public string FileNameTimeFormat
+        public string FileNameDateTimeFormat
         {
             get
             {
-                if (String.IsNullOrEmpty(_filenameTimeFormat))
-                    _filenameTimeFormat = "yyyy_MM_dd";
-                return _filenameTimeFormat;
+                if (String.IsNullOrEmpty(_filenameDateTimeFormat))
+                    _filenameDateTimeFormat = "yyyy_MM_dd";
+                return _filenameDateTimeFormat;
             }
             set
             {
-                _filenameTimeFormat = value;
+                _filenameDateTimeFormat = value;
             }
         }
 
@@ -104,7 +104,7 @@ namespace log4net.Appender
         /// </remarks>
         protected override void SendBuffer(LoggingEvent[] events)
         {
-            CloudAppendBlob appendBlob = _cloudBlobContainer.GetAppendBlobReference(Filename(_directoryName, _filenameTimeFormat));
+            CloudAppendBlob appendBlob = _cloudBlobContainer.GetAppendBlobReference(Filename(_directoryName, _filenameDateTimeFormat));
             if (!appendBlob.Exists()) appendBlob.CreateOrReplace();
             else _lineFeed = Environment.NewLine;
 
@@ -116,7 +116,7 @@ namespace log4net.Appender
 
         private void ProcessEvent(LoggingEvent loggingEvent)
         {
-            CloudAppendBlob appendBlob = _cloudBlobContainer.GetAppendBlobReference(Filename(_directoryName, _filenameTimeFormat));
+            CloudAppendBlob appendBlob = _cloudBlobContainer.GetAppendBlobReference(Filename(_directoryName, _filenameDateTimeFormat));
 
             PatternLayout layout = (PatternLayout)base.Layout;
             string log = layout.Format(loggingEvent);
@@ -127,11 +127,11 @@ namespace log4net.Appender
             }
         }
 
-        private static string Filename(string directoryName, string filenameTimeFormat)
+        private static string Filename(string directoryName, string filenameDateTimeFormat)
         {
             return string.Format("{0}/{1}.entry.log",
                                  directoryName,
-                                 DateTime.Today.ToString(filenameTimeFormat,
+                                 DateTime.Today.ToString(filenameDateTimeFormat,
                                                                  DateTimeFormatInfo.InvariantInfo));
         }
 
