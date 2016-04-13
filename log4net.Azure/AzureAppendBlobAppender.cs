@@ -75,23 +75,37 @@ namespace log4net.Appender
             }
         }
 
-        private string _filenameDateTimeFormat;
+        private string _filenamePrefixDateTimeFormat;
 
-        public string FileNameDateTimeFormat
+        public string FileNamePrefixDateTimeFormat
         {
             get
             {
-                if (String.IsNullOrEmpty(_filenameDateTimeFormat))
-                    _filenameDateTimeFormat = "yyyy_MM_dd";
-                return _filenameDateTimeFormat;
+                if (String.IsNullOrEmpty(_filenamePrefixDateTimeFormat))
+                    _filenamePrefixDateTimeFormat = "yyyy_MM_dd";
+                return _filenamePrefixDateTimeFormat;
             }
             set
             {
-                _filenameDateTimeFormat = value;
+                _filenamePrefixDateTimeFormat = value;
             }
         }
 
+        private string _filenameSuffix;
 
+        public string FileNameSuffix
+        {
+            get
+            {
+                if (String.IsNullOrEmpty(_filenameSuffix))
+                    _filenameSuffix = ".entry.log";
+                return _filenameSuffix;
+            }
+            set
+            {
+                _filenameSuffix = value;
+            }
+        }
 
         /// <summary>
         /// Sends the events.
@@ -104,7 +118,7 @@ namespace log4net.Appender
         /// </remarks>
         protected override void SendBuffer(LoggingEvent[] events)
         {
-            CloudAppendBlob appendBlob = _cloudBlobContainer.GetAppendBlobReference(Filename(_directoryName, _filenameDateTimeFormat));
+            CloudAppendBlob appendBlob = _cloudBlobContainer.GetAppendBlobReference(Filename(_directoryName, _filenamePrefixDateTimeFormat, _filenameSuffix));
             if (!appendBlob.Exists()) appendBlob.CreateOrReplace();
             else _lineFeed = Environment.NewLine;
 
@@ -116,7 +130,7 @@ namespace log4net.Appender
 
         private void ProcessEvent(LoggingEvent loggingEvent)
         {
-            CloudAppendBlob appendBlob = _cloudBlobContainer.GetAppendBlobReference(Filename(_directoryName, _filenameDateTimeFormat));
+            CloudAppendBlob appendBlob = _cloudBlobContainer.GetAppendBlobReference(Filename(_directoryName, _filenamePrefixDateTimeFormat, _filenameSuffix));
 
             PatternLayout layout = (PatternLayout)base.Layout;
             string log = layout.Format(loggingEvent);
@@ -127,12 +141,12 @@ namespace log4net.Appender
             }
         }
 
-        private static string Filename(string directoryName, string filenameDateTimeFormat)
+        private static string Filename(string directoryName, string filenamePrefixDateTimeFormat, string filenameSuffix)
         {
-            return string.Format("{0}/{1}.entry.log",
+            return string.Format("{0}/{1}{2}",
                                  directoryName,
-                                 DateTime.Today.ToString(filenameDateTimeFormat,
-                                                                 DateTimeFormatInfo.InvariantInfo));
+                                 DateTime.Today.ToString(filenamePrefixDateTimeFormat, DateTimeFormatInfo.InvariantInfo),
+                                 filenameSuffix);
         }
 
         /// <summary>
