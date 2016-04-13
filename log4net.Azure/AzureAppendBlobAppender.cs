@@ -9,6 +9,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using log4net.Appender.Language;
 using log4net.Core;
+using log4net.Layout;
 
 namespace log4net.Appender
 {
@@ -89,14 +90,20 @@ namespace log4net.Appender
             if (!appendBlob.Exists()) appendBlob.CreateOrReplace();
             else _lineFeed = Environment.NewLine;
 
-            Parallel.ForEach(events, ProcessEvent);
+            foreach (var e in events)
+            {
+                ProcessEvent(e);
+            }
         }
 
         private void ProcessEvent(LoggingEvent loggingEvent)
         {
             CloudAppendBlob appendBlob = _cloudBlobContainer.GetAppendBlobReference(Filename(_directoryName));
-            var xml = _lineFeed + loggingEvent.GetXmlString();
-            using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(xml)))
+
+            PatternLayout layout = (PatternLayout)base.Layout;
+            string log = layout.Format(loggingEvent);
+            
+            using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(log)))
             {
                 appendBlob.AppendBlock(ms);
             }
@@ -104,7 +111,7 @@ namespace log4net.Appender
 
         private static string Filename(string directoryName)
         {
-            return string.Format("{0}/{1}.entry.log.xml",
+            return string.Format("{0}/{1}.entry.log",
                                  directoryName,
                                  DateTime.Today.ToString("yyyy_MM_dd",
                                                                  DateTimeFormatInfo.InvariantInfo));
@@ -128,12 +135,14 @@ namespace log4net.Appender
         /// </remarks>
         public override void ActivateOptions()
         {
+
             base.ActivateOptions();
 
             _account = CloudStorageAccount.Parse(ConnectionString);
             _client = _account.CreateCloudBlobClient();
             _cloudBlobContainer = _client.GetContainerReference(ContainerName.ToLower());
             _cloudBlobContainer.CreateIfNotExists();
+            
         }
     }
 }
