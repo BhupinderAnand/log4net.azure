@@ -70,6 +70,9 @@ Every log Entry is stored as separate XML file.
       <!-- You can either specify a connection string or use the ConnectionStringName property instead -->
       <param name="ConnectionString" value="UseDevelopmentStorage=true"/>
       <!--<param name="ConnectionStringName" value="GlobalConfigurationString" />-->
+      <layout type="log4net.Layout.PatternLayout">
+        <conversionPattern value="[%date{yyyy'-'MM'-'dd HH':'mm':'ss'.'fff}] [%property{DBName}-%property{UserName}-%property{Entry}] - %-5level - [%property{ClassName}.%property{MethodOrPropName} (%property{StandardStatus} %property{CustomStatus})] %message -- Entities: %property{EntityNames} %property{EntityCodes} -- Exception: %property{StackTrace} %property{Errors}%newline "/>
+      </layout>
     </appender>
 	
 * <b>ContainerName:</b>  
